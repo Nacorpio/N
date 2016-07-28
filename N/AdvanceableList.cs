@@ -197,6 +197,8 @@ namespace N
             var current = GetCurrent();
             results.Add(current);
 
+            Advanced?.Invoke(this, this);
+
             while (Advance(out current))
             {
                 results.Add(current);

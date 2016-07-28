@@ -10,8 +10,8 @@ namespace N.Test
     {
         static void Main(string[] args)
         {
-            var aList = new AdvanceableList<char>("let {x = 0, y = 0};".ToCharArray());
-            var current = aList.AdvanceUntilEnd();
+            var lexer = new Lexer("let { int; };");
+            lexer.Begin();
         }
     }
 }
