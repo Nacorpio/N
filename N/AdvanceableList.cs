@@ -56,6 +56,8 @@ namespace N
         T Peek(int n);
     }
 
+    
+
     /// <summary>
     /// Represents a list that can be advanced throughout.
     /// </summary>
@@ -95,9 +97,28 @@ namespace N
         /// <summary>
         /// Fired when the <see cref="AdvanceableList{T}"/> has advanced.
         /// </summary>
-        /// <param name="element">The current element.</param>
-        protected virtual void OnAdvance(T element)
-        { }
+        public event EventHandler<AdvanceableList<T>> Advanced;
+
+        /// <summary>
+        /// Searches for the first occurrence of a specific element, starting at a specific position.
+        /// </summary>
+        /// <param name="element">The element to search for.</param>
+        /// <param name="index">The zero-based index to start searching at.</param>
+        /// <returns></returns>
+        public int IndexOf(T element, int index)
+        {
+            return _elements.IndexOf(element, index);
+        }
+
+        /// <summary>
+        /// Searches for the first occurrence of a specific element.
+        /// </summary>
+        /// <param name="element">The element to search for.</param>
+        /// <returns></returns>
+        public int IndexOf(T element)
+        {
+            return IndexOf(element, 0);
+        }
 
         /// <summary>
         /// Gets a collection of elements within a specific range.
@@ -116,7 +137,7 @@ namespace N
         /// <returns></returns>
         public IEnumerable<T> GetRemaining()
         {
-            return _elements.GetRange(Position - 1, _elements.Count);
+            return _elements.GetRange(Position, _elements.Count - Position);
         }
 
         /// <summary>
@@ -129,7 +150,7 @@ namespace N
                 return false;
 
             Position++;
-            OnAdvance(GetCurrent());
+            Advanced?.Invoke(this, this);
 
             return true;
         }
@@ -173,9 +194,16 @@ namespace N
         {
             var results = new Collection<T>();
 
-            T current;
-            while (Advance(out current) && predicate(GetCurrent()))
+            var current = GetCurrent();
+            results.Add(current);
+
+            while (Advance(out current))
+            {
                 results.Add(current);
+
+                if (!predicate(GetCurrent()))
+                    break;
+            }
 
             return results;
         }
@@ -188,6 +216,15 @@ namespace N
         public IEnumerable<T> AdvanceUntil(Predicate<T> predicate)
         {
             return AdvanceWhile(x => !predicate(GetCurrent()));
+        }
+
+        /// <summary>
+        /// Advances the <see cref="AdvanceableList{T}"/> until the last element.
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<T> AdvanceUntilEnd()
+        {
+            return AdvanceUntil(x => Position == _elements.Count);
         }
 
         /// <summary>
